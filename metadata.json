@@ -1,0 +1,6 @@
+{
+  "name": "DocFlow",
+  "description": "A collaborative rich-text document editor with TipTap, auto-saving, file imports, and secure email-based document sharing.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
