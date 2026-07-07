@@ -4,6 +4,7 @@ import Editor from "./components/Editor";
 import WelcomePanel from "./components/WelcomePanel";
 import { Document } from "./types";
 import { AlertCircle, RefreshCw } from "lucide-react";
+import * as api from "./lib/api";
 
 export default function App() {
   const [currentUserEmail, setCurrentUserEmail] = useState("omkarsaicharan@gmail.com");
@@ -19,17 +20,12 @@ export default function App() {
     setIsLoading(true);
     setError(null);
     try {
-      const res = await fetch(`/api/documents?email=${encodeURIComponent(email)}`);
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || "Failed to load documents");
-      }
-      const data = await res.json();
+      const data = await api.getDocuments(email);
       setOwnedDocs(data.owned || []);
       setSharedDocs(data.shared || []);
     } catch (err: any) {
       console.error(err);
-      setError(err.message || "Failed to retrieve documents from local SQLite server");
+      setError(err.message || "Failed to retrieve documents");
     } finally {
       setIsLoading(false);
     }
@@ -44,14 +40,7 @@ export default function App() {
   const handleDocSelect = async (doc: Document) => {
     setError(null);
     try {
-      const res = await fetch(
-        `/api/documents/${doc.id}?email=${encodeURIComponent(currentUserEmail)}`
-      );
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || "Failed to fetch document content");
-      }
-      const fullDoc = await res.json();
+      const fullDoc = await api.getDocument(doc.id, currentUserEmail);
       setSelectedDoc(fullDoc);
       setSelectedDocId(doc.id);
     } catch (err: any) {
@@ -64,22 +53,11 @@ export default function App() {
   const handleCreateNewDoc = async () => {
     setError(null);
     try {
-      const res = await fetch("/api/documents", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title: "Untitled Document",
-          content: "<h1>Untitled Document</h1><p>Start writing your thoughts here...</p>",
-          ownerEmail: currentUserEmail
-        })
-      });
-
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || "Failed to create document");
-      }
-
-      const newDoc = await res.json();
+      const newDoc = await api.createDocument(
+        "Untitled Document",
+        "<h1>Untitled Document</h1><p>Start writing your thoughts here...</p>",
+        currentUserEmail
+      );
       await fetchDocuments(currentUserEmail);
 
       // Select newly created document
@@ -113,22 +91,11 @@ export default function App() {
           .join("");
       }
 
-      const res = await fetch("/api/documents", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title: title || "Imported Document",
-          content: formattedContent || "<p>Empty file imported.</p>",
-          ownerEmail: currentUserEmail
-        })
-      });
-
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || "Failed to import document");
-      }
-
-      const newDoc = await res.json();
+      const newDoc = await api.createDocument(
+        title || "Imported Document",
+        formattedContent || "<p>Empty file imported.</p>",
+        currentUserEmail
+      );
       await fetchDocuments(currentUserEmail);
 
       // Select newly created document

@@ -20,6 +20,7 @@ import {
   Plus
 } from "lucide-react";
 import { Document, Share } from "../types";
+import * as api from "../lib/api";
 
 interface EditorProps {
   document: Document;
@@ -97,12 +98,7 @@ export default function Editor({
     setShareLoading(true);
     setShareError("");
     try {
-      const res = await fetch(`/api/documents/${document.id}/shares?email=${encodeURIComponent(currentUserEmail)}`);
-      if (!res.ok) {
-        const errData = await res.json();
-        throw new Error(errData.error || "Failed to fetch share settings");
-      }
-      const data = await res.json();
+      const data = await api.getShares(document.id, currentUserEmail);
       setShares(data);
     } catch (err: any) {
       setShareError(err.message);
@@ -118,20 +114,7 @@ export default function Editor({
     setShareLoading(true);
     setShareError("");
     try {
-      const res = await fetch(`/api/documents/${document.id}/share`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: currentUserEmail,
-          sharedWith: shareEmailInput.trim()
-        })
-      });
-
-      if (!res.ok) {
-        const errData = await res.json();
-        throw new Error(errData.error || "Failed to share document");
-      }
-
+      await api.shareDocument(document.id, currentUserEmail, shareEmailInput.trim());
       setShareEmailInput("");
       await fetchShares();
     } catch (err: any) {
@@ -145,16 +128,7 @@ export default function Editor({
     setShareLoading(true);
     setShareError("");
     try {
-      const res = await fetch(
-        `/api/documents/${document.id}/share?email=${encodeURIComponent(currentUserEmail)}&sharedWith=${encodeURIComponent(sharedWith)}`,
-        { method: "DELETE" }
-      );
-
-      if (!res.ok) {
-        const errData = await res.json();
-        throw new Error(errData.error || "Failed to remove share");
-      }
-
+      await api.unshareDocument(document.id, currentUserEmail, sharedWith);
       await fetchShares();
     } catch (err: any) {
       setShareError(err.message);
@@ -207,22 +181,11 @@ export default function Editor({
         }
       }
 
-      const res = await fetch(`/api/documents/${document.id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: currentUserEmail,
-          content: htmlContent,
-          ...(titleToSave ? { title: titleToSave } : {})
-        })
+      const updated = await api.updateDocument(document.id, currentUserEmail, {
+        content: htmlContent,
+        ...(titleToSave ? { title: titleToSave } : {})
       });
 
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || "Autosave failed");
-      }
-
-      const updated = await res.json();
       onDocumentUpdated({ ...updated, isOwner: document.isOwner });
       setSaveStatus("saved");
     } catch (err: any) {
@@ -244,21 +207,10 @@ export default function Editor({
 
     titleAutosaveTimerRef.current = setTimeout(async () => {
       try {
-        const res = await fetch(`/api/documents/${document.id}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            email: currentUserEmail,
-            title: newTitle.trim() || "Untitled Document"
-          })
+        const updated = await api.updateDocument(document.id, currentUserEmail, {
+          title: newTitle.trim() || "Untitled Document"
         });
 
-        if (!res.ok) {
-          const data = await res.json();
-          throw new Error(data.error || "Title update failed");
-        }
-
-        const updated = await res.json();
         onDocumentUpdated({ ...updated, isOwner: document.isOwner });
         setSaveStatus("saved");
       } catch (err: any) {
@@ -276,15 +228,7 @@ export default function Editor({
   const handleConfirmDelete = async () => {
     setDeleteLoading(true);
     try {
-      const res = await fetch(`/api/documents/${document.id}?email=${encodeURIComponent(currentUserEmail)}`, {
-        method: "DELETE"
-      });
-
-      if (!res.ok) {
-        const errData = await res.json();
-        throw new Error(errData.error || "Failed to delete document");
-      }
-
+      await api.deleteDocument(document.id, currentUserEmail);
       setIsDeleteModalOpen(false);
       onDocumentDeleted(document.id);
     } catch (err: any) {

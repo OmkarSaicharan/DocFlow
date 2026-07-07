@@ -15,6 +15,7 @@ import {
   FolderDot
 } from "lucide-react";
 import { Document } from "../types";
+import { getIsLocalFallback } from "../lib/api";
 
 interface SidebarProps {
   ownedDocs: Document[];
@@ -301,7 +302,7 @@ export default function Sidebar({
       <div className="p-4 border-t border-slate-800 bg-slate-950/25 flex items-center justify-between text-[10px] text-slate-500">
         <span className="font-mono">v1.0.0 Stable</span>
         <span className="flex items-center gap-1 font-semibold text-indigo-400/80">
-          Auto-saved local
+          {getIsLocalFallback() ? "Browser Local Storage" : "Cloud SQLite Database"}
         </span>
       </div>
     </div>
