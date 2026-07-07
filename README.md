@@ -73,9 +73,3 @@ Document successfully retrieved!
 Cleaning up test document...
 Database connection & Prisma integration test PASSED! 🎉
 ```
-
---> Built a lightweight collaborative document editor inspired by Google Docs, designed as a focused internal productivity tool for creating, editing, saving, importing, and sharing rich-text documents. The app supports core formatting features such as bold, italic, underline, headings, and lists through a modern rich-text editing experience, while keeping the scope intentionally practical for a take-home assignment.
-
---> It includes document ownership, simple sharing between seeded users, file import for .txt and .md files, and persistent storage so documents and access state remain available after refresh. The product is intentionally scoped around reliable end-to-end functionality rather than advanced features like real-time collaboration, which reflects the assignment’s emphasis on product judgment, engineering tradeoffs, and shipping a usable solution quickly.
-
---> A lightweight collaborative document editor for creating, editing, saving, importing, and sharing rich-text documents. Built as a focused full-stack productivity tool with persistent storage, seeded-user sharing, and a clean editing workflow optimized for practical product delivery.
